@@ -182,6 +182,7 @@ int main( int argc, char* argv[] )
 
 	size_t connErrors = 0;
 	ConnectionData* connections = new ConnectionData[numClients];
+
 	for( size_t i = 0; i < numClients; ++i )
 	{
 #		if MEASURE_CONNECT_TIME
@@ -220,8 +221,6 @@ int main( int argc, char* argv[] )
 
 	printf( "  successfully initiated %zu connection attempts!\n", 
 		numClients-connErrors );
-
-	return 0;
 
 	// event handling loop
 	size_t clientsAlive = numClients - connErrors;
@@ -623,9 +622,6 @@ static int connect_to_server_nonblock( const sockaddr_in& sa )
 			perror( "connect() failed" );
 			close( fd );
 			return -1;
-		}
-		else {
-		    printf("EINPROGRESS.. \n");
 		}
 	}
 

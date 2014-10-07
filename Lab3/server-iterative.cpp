@@ -59,7 +59,7 @@ const int kServerBacklog = 8;
 // Size of the buffer used to transfer data. A single read from the socket 
 // may return at most this much data, and consequently, a single send may
 // send at most this much data.
-const size_t kTransferBufferSize = 16;
+const size_t kTransferBufferSize = 64;
 
 //--    constants           ///{{{1///////////////////////////////////////////
 
@@ -169,7 +169,6 @@ int main( int argc, char* argv[] )
 
 		// accept a single incoming connection
 		int clientfd = accept( listenfd, (sockaddr*)&clientAddr, &addrSize );
-		printf("Accepted a new client.. \n");
 
 		if( -1 == clientfd )
 		{
@@ -256,11 +255,9 @@ static bool process_client_recv( ConnectionData& cd )
 
 	// update connection buffer
 	cd.bufferSize += ret;
-	//	printf("Buffersize: %d \n", cd.bufferSize);
 
 	// zero-terminate received data
 	cd.buffer[cd.bufferSize] = '\0';
-	// printf("Buffer: %s \n", cd.buffer);
 
 	// transition to sending state
 	cd.bufferOffset = 0;
