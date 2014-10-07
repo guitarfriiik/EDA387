@@ -48,7 +48,7 @@
 
 // Default port of the server. May be overridden by specifying a different
 // port as the first command line argument to the server program.
-const int kServerPort = 5706;
+const int kServerPort = 5703;
 
 // Second parameter to listen().
 // Note - this parameter is (according to the POSIX standard) merely a hint.
@@ -207,6 +207,7 @@ int main( int argc, char* argv[] )
 		// Accept connection and add it to the list.
 		if(acceptConnection(&connections, listenfd) == -1)
 		    continue;
+		continue;
 	    }
 
 	    for(size_t i=0; i<connections.size(); i++){
@@ -219,7 +220,7 @@ int main( int argc, char* argv[] )
 			processFurther = process_client_recv( connections[i] );
 		}
 		
-		if(FD_ISSET(sd, &writefds)){
+		else if(FD_ISSET(sd, &writefds)){
 		    while( processFurther && connections[i].state == eConnStateSending )
 			processFurther = process_client_send( connections[i] );
 		}
