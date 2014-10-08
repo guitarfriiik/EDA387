@@ -1,11 +1,20 @@
-/***********************************************************/
-/* Echo Server for Network API Lab: Part II in Internet Technology 2011.
+/*********************************************************** -- HEAD -{{{1- */
+/* Echo Server for Network API Lab: Part I in Internet Technology 2011.
  *
- * A concurrent server capable of accepting and processing several connections
- * at any given time. Data received from a connection is simply sent back
+ * Iterative server capable of accpeting and processing a single connection
+ * at any given time. Data received from the connection is simply sent back
  * unmodified ("echoed").
+ *
+ * Build the server using e.g.
+ * 		$ g++ -Wall -Wextra -o server-iter server-iterative.cpp
+ *
+ * Start using
+ * 		$ ./server-iter
+ * or
+ * 		$ ./server-iter 31337
+ * to listen on a port other than the default 5703.
  */
-/*******************************************************************/
+/******************************************************************* -}}}1- */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +36,7 @@
 //--    configurables       ///{{{1///////////////////////////////////////////
 
 // Set VERBOSE to 1 to print additional, non-essential information.
-#define VERBOSE 0
+#define VERBOSE 1
 
 // If NONBLOCKING is set to 1, all sockets are put into non-blocking mode.
 // Use this for Part II, when implementing the select() based server, where
@@ -130,7 +139,6 @@ static bool is_invalid_connection( const ConnectionData& cd );
  */
 static int setup_server_socket( short port );
 
-/* Accepts an incoming connection on 'socket' and adds it to the connections vector 'list'.*/
 static int acceptConnection(std::vector<ConnectionData> *list, int socket);
 
 //--    main()              ///{{{1///////////////////////////////////////////
@@ -143,7 +151,8 @@ int main( int argc, char* argv[] )
 
     std::vector<ConnectionData> connections;
 
-    // Did the user specify a port?
+
+    // did the user specify a port?
     if( 2 == argc )
 	{
 	    serverPort = atoi(argv[1]);
@@ -153,7 +162,7 @@ int main( int argc, char* argv[] )
     printf( "Attempting to bind to port %d\n", serverPort );
 #	endif
 
-    // Set up listening socket - see setup_server_socket() for details.
+    // set up listening socket - see setup_server_socket() for details.
     int listenfd = setup_server_socket( serverPort );
 
 
@@ -163,6 +172,7 @@ int main( int argc, char* argv[] )
     // loop forever
     while( 1 )
 	{
+	    ConnectionData connData;
 	    
 	    FD_ZERO(&readfds); // Clear the read socket set
 	    FD_ZERO(&writefds); // Clear the read socket set
@@ -175,7 +185,7 @@ int main( int argc, char* argv[] )
 		sd = connections[i].sock;
 
 		if(sd > 0){
-		    if(connections[i].state == eConnStateReceiving) //Add connections to the corresponding sets
+		    if(connections[i].state == eConnStateReceiving)
 			FD_SET(sd, &readfds);
 		    else if(connections[i].state == eConnStateSending)
 			FD_SET(sd, &writefds);
@@ -187,7 +197,7 @@ int main( int argc, char* argv[] )
 	    }
 
 
-	    activity = select(maxFd + 1, &readfds, &writefds, NULL, NULL); // Perform select to find pending reads and writes
+	    activity = select(maxFd + 1, &readfds, &writefds, NULL, NULL);
 
 	    if((activity < 0) && (errno != EINTR)){ // Check so that no errors occured.
 		printf("select error \n"); // Should we have "else"
@@ -200,12 +210,11 @@ int main( int argc, char* argv[] )
 		continue;
 	    }
 
-	    // Loop through all connections and check if they members of a set
 	    for(size_t i=0; i<connections.size(); i++){
-		sd = connections[i].sock; //Copy the socket descriptor
+		sd = connections[i].sock;
 
 		bool processFurther = true;
-		if(FD_ISSET(sd, &readfds)){
+		if(FD_ISSET(sd, &readfds)){ // Activity on one of the client sockets.
 
 		    while( processFurther && connections[i].state == eConnStateReceiving )
 			processFurther = process_client_recv( connections[i] );
@@ -216,15 +225,22 @@ int main( int argc, char* argv[] )
 			processFurther = process_client_send( connections[i] );
 		}
 
-		if(!processFurther){ // Close the socket if processing is finished
+
+		if(!processFurther){
 			close(connections[i].sock);
 			connections[i].sock = -1;
-		}
+		    }
+		
+
 	    }
 	    
-	    //Erase all invalid connections
-	    connections.erase(std::remove_if(connections.begin(),
-                   connections.end(), &is_invalid_connection),connections.end());
+	    connections.erase(
+			      std::remove_if(
+					     connections.begin(), connections.end(), &is_invalid_connection
+					     ),
+			      connections.end()
+			      );
+
 	}
 
     // The program will never reach this part, but for demonstration purposes,
@@ -234,7 +250,6 @@ int main( int argc, char* argv[] )
     return 0;
 }
 
-/* Accepts an incoming connection on 'socket' and adds it to the connections vector 'list'.*/
 static int acceptConnection(std::vector<ConnectionData> *list, int socket){
     sockaddr_in clientAddr;
     socklen_t addrSize = sizeof(clientAddr);
@@ -272,7 +287,7 @@ static int acceptConnection(std::vector<ConnectionData> *list, int socket){
     connData.sock = clientfd;
     connData.state = eConnStateReceiving;
 
-    list->push_back(connData); // Add connection to the list
+    list->push_back(connData);
 
     return 0;
 }
@@ -455,3 +470,4 @@ static bool is_invalid_connection( const ConnectionData& cd )
     return cd.sock == -1;
 }
 
+//--///}}}1//////////////// vim:syntax=cpp:foldmethod=marker:ts=4:noexpandtab: 
