@@ -9,7 +9,7 @@ client-multi.out: client-multi.cpp
 client-simple.out: client-simple.cpp
 	$(CC) $(CFLAGS) -o $@ $^
 
-server-concurrent.out: server-iterative.cpp
+server-concurrent.out: server-concurrent.cpp
 	$(CC) $(CFLAGS) -o $@ $^
 clean:
 	rm client-multi.out client-simple.out server-concurrent.out
